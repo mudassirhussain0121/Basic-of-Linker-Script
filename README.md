@@ -65,3 +65,68 @@ In other words, it controls how object files are combined into an executable or 
 	- Organize code and data sections (.text, .data, .bss, etc.).
 	- Set entry points for programs (e.g., _start in embedded systems).
 	- Handle special requirements (e.g., bootloaders, firmware).
+
+### Basic Structure of a Linker Script
+
+A typical linker script has these main parts:  
+- `ENTRY()`  → Defines the program’s starting point.
+- `MEMORY`   → Describes available memory regions.
+- `SECTIONS` → Controls where code/data goes.
+- `Symbol Definitions` → Variables used in startup code.
+
+
+#### ENTRY() - Program Entry Point
+
+This tells the linker where execution starts (usually `Reset_Handler` in embedded systems).
+
+```
+ENTRY(Reset_Handler)  /* Execution starts at Reset_Handler */
+````
+
+#### MEMORY - Defining Memory Regions
+
+This describes physical memory (Flash, RAM) available in your chip.
+
+```
+MEMORY {
+  NAME (ATTRIBUTES) : ORIGIN = START_ADDRESS, LENGTH = SIZE
+}
+```
+
+NAME → A label (e.g., FLASH, RAM).
+
+ATTRIBUTES → Access permissions:
+
+	r = Readable
+
+	w = Writable
+
+	x = Executable
+
+	a = Allocatable
+
+ORIGIN → Start address (0x08000000 for STM32 Flash).
+
+LENGTH → Size (256K for STM32F4).
+
+Example (STM32F303):
+
+```
+MEMORY {
+  FLASH (rx) : ORIGIN = 0x08000000, LENGTH = 256K  /* Flash is read-execute */
+  RAM (xrw) : ORIGIN = 0x20000000, LENGTH = 40K   /* RAM is read-write-execute */
+}
+```
+
+#### SECTIONS - Placing Code & Data
+
+This is where you control where .text, .data, .bss, etc., go.
+
+| Section |	Contents                         | Usually Placed In |
+|---------|----------------------------------|-------------------|
+| .text	  | Code (functions, ISRs)	         | Flash (rx)  |
+| .rodata | Read-only data (const variables) | Flash (rx)  |
+| .data	  | Initialized variables	         | RAM (xrw)   |
+| .bss	  | Uninitialized variables (zeroed) | RAM (xrw)   |
+| .stack  | Stack memory                     | End of RAM  |
+| .heap	  | Dynamic memory (malloc/free)     | After .bss  |
