@@ -45,5 +45,23 @@ gcc main.o math.o -o program  # The linker combines them!
 Now, program knows how to call add() function from math.o.
 ```
 
+
 ![Linking Process](/readme_images/linking_process.png)
 
+
+### Why and When Linker needed an Linker Script (.ld File)?
+A linker script (.ld file) is a configuration file that tells the linker:  
+- Where to place code/data (Flash, RAM, etc.)
+- How to organize memory (stack, heap, special sections)
+- How to resolve symbols (variables, functions, etc.)
+
+## Linker Script (.ld File)
+
+The main purpose of the linker script is to describe how the sections in the input files should be mapped into the output file and to control the memory layout of the output file.    
+In other words, it controls how object files are combined into an executable or library by specifying memory layout, section placement, and symbol definitions.
+
+- Purpose of .ld Files
+	- Define memory regions (RAM, ROM, Flash).
+	- Organize code and data sections (.text, .data, .bss, etc.).
+	- Set entry points for programs (e.g., _start in embedded systems).
+	- Handle special requirements (e.g., bootloaders, firmware).
