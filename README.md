@@ -7,11 +7,11 @@ A linker is a program that takes one or more compiled object files (.o or .obj) 
 ### What Does a Linker Do?
 
 - <ins>Combines Code & Data:</ins>
-	- Takes multiple .o files (from different .c files) and merges them.
-	- Example: If main.c calls a function from math.c, the linker connects them.
+	- Takes multiple `.o` files (from different .c files) and merges them.
+	- Example: If `main.c` calls a function from `math.c`, the linker connects them.
 
 - <ins>Resolves References:</ins>
-	- If main.o uses a function from math.o, the linker finds and links them.
+	- If `main.o` uses a function from `math.o`, the linker finds and links them.
 	- If something is missing (like an undefined function), it gives a "linker error".
 
 - <ins>Decides Where Everything Goes in Memory:</ins>
@@ -36,13 +36,13 @@ gcc -c math.c → Produces math.o
 gcc -c main.c → Produces main.o
 
 Without linking:
-main.o doesn’t know where add() function is.
+`main.o` doesn’t know where `add()` function is.
 
 
 With linking:
 gcc main.o math.o -o program  # The linker combines them!
 
-Now, program knows how to call add() function from math.o.
+Now, program knows how to call `add()` function from `math.o`.
 ```
 
 
@@ -103,10 +103,10 @@ MEMORY {
 `NAME` → A label (e.g., FLASH, RAM).  
 `ATTRIBUTES` → Access permissions: 
 ``` 
-  r = Readable  
-  w = Writable  
-  x = Executable  
-  a = Allocatable  
+ r = Readable  
+ w = Writable  
+ x = Executable  
+ a = Allocatable  
 ```
 `ORIGIN` → Start address (0x08000000 for STM32 Flash).  
 `LENGTH` → Size (256K for STM32F4).
@@ -140,7 +140,7 @@ This is where you control where .text, .data, .bss, etc., go.
 ```
 SECTIONS {
   .section_name : {
-    *(.subsection)  /* Wildcard to match all .subsection in input files */
+    *(.subsection)  /* Wildcard to match all `.subsection` in input files */
     . = ALIGN(4);   /* Align to 4 bytes (ARM requirement) */
     symbol = .;     /* Define a symbol at current location */
   } > MEMORY_REGION
@@ -157,16 +157,16 @@ SECTIONS {
 ##### (3.1) .section_name : { ... }
 This defines an output section in the final executable.
 
-> **❗ Important**: Sections (.text, .rodata, .data, and .bss) are created by the compiler (GCC/Clang) during compilation of your C/C++ code.
-
 ````
 Example sections:
 
-  .text → Code (functions, ISRs).
+  .text   → Code (functions, ISRs).
   .rodata → Read-only data.
-  .data → Initialized variables.
-  .bss → Zero-initialized variables.
+  .data   → Initialized variables.
+  .bss    → Zero-initialized variables.
 ````
+
+> **❗ Important**: Sections (.text, .rodata, .data, and .bss) are created by the compiler (GCC/Clang) during compilation of your C/C++ code.
 
 ```
 Example:
@@ -241,14 +241,14 @@ Example:
 /* .text goes into FLASH region. */
 
 .text : {
-  *(.text*)      /* All .text sections from input files */
-  *(.rodata*)    /* All .rodata sections */
+  *(.text*)      /* All `.text` sections from input files */
+  *(.rodata*)    /* All `.rodata` sections */
   . = ALIGN(4);  /* Align to 4 bytes */
-  _etext = .;    /* Symbol marking end of .text */
+  _etext = .;    /* Symbol marking end of `.text` */
 } > FLASH
 ```
 
-Special Case: .data Section (Where data load from FALSH to RAM at runtime)
+Special Case: `.data` Section (Where data load from FALSH to RAM at runtime)
 
 ```
 .data : {
@@ -266,10 +266,17 @@ AT > FLASH → Where `.data` is stored (Flash retains initial values).
 ```
 Example:
 
+
+/* --- Heap & Stack Sizes --- */
+_Min_Heap_Size  = 0x200;   /* 512 bytes heap */
+_Min_Stack_Size = 0x400;   /* 1 KB stack */
+
+
 SECTIONS {
   /* 1. Interrupt Vector Table (must be at start of Flash) */
   .isr_vector : {
     *(.isr_vector)  /* Matches the vector table in startup file */
+	KEEP(*(.isr_vector)) /* `KEEP` make sure it is not removed during optimization */
   } > FLASH
 
   /* 2. Code (.text) and read-only data (.rodata) */
@@ -278,7 +285,7 @@ SECTIONS {
                       So, it's start address is know and no need to define expectily.
                    */
 				   
-    *(.text*)      /* All .text sections from input files.
+    *(.text*)      /* All `.text` sections from input files.
                      (*) (before parentheses) Matches all input files (e.g., main.o, driver.o).
                      (.text*) Matches all sections whose names start with `.text`
                    */
@@ -305,18 +312,14 @@ SECTIONS {
   } > RAM
 
 
-  /* --- Heap & Stack Sizes --- */
-  _Min_Heap_Size  = 0x200;   /* 512 bytes heap */
-  _Min_Stack_Size = 0x400;   /* 1 KB stack */
-
   /* 5. Stack & Heap */
   ._user_heap_stack : {                                 // The two ALIGN(8) serve different purposes in memory section placement:
     . = ALIGN(8); /* Ensures the starting address       // 1st ALIGN(8) (Before allocations):
                      is 8-byte aligned.                 //  - Ensures the heap/stack region starts on an 8-byte aligned address.
                   */                                    //  - `end/_end` symbols (used by _sbrk() for malloc) must be aligned.
     /* `end` and `_end`, Symbols marking the start      //  - ARM architectures often require 8-byte alignment for stack pointers.
-      of the heap. Used by _sbrk() (in syscalls.c)      //  - Prevents misaligned access penalties (especially for double-word operations).
-	   to manage malloc()/free().                       // 2nd ALIGN(8) (After allocations):
+      of the heap. Used by `_sbrk()` (in syscalls.c)    //  - Prevents misaligned access penalties (especially for double-word operations).
+	   to manage `malloc()/free()`.                     // 2nd ALIGN(8) (After allocations):
     */                                                  //  - Pads the total RAM usage to an 8-byte boundary.
     PROVIDE(end = .);                                   //  - Ensures next memory section (if any) starts aligned.
     PROVIDE(_end = .);                                  //  - No wasted "slop space" between sections.
@@ -339,7 +342,7 @@ SECTIONS {
 0x2000A000 +-------------------+
            | Stack (1KB)       |  <-- Grows downward
            |-------------------|
-           | Heap (512B)       |  <-- `end` (used by _sbrk for malloc)
+           | Heap (512B)       |  <-- `end and _end` (used by _sbrk for malloc)
            |-------------------|
            | .bss (zero-init)  |
            |-------------------|
@@ -357,11 +360,17 @@ When a section is added in the memory region then the cursor move forward and (.
 Can be moved forward to reserve space:
 
 . = . + 0x100;  /* Skip 256 bytes */
-
-_etext = .;   /* Save current position into `_etext` */
 ```
 
-The . is implicitly used to track where these sections start and end.
+The (.) is implicitly used to track where these sections start and end.
+
+```
+_stext = .; /* Save current position into `_stext` (start of `.text` section)*/
+_etext = .; /* Save current position into `_etext` (end of `.text` section)*/
+
+_sbss = .;
+_ebss = .;
+```
 
 ```	
 Example:
@@ -391,12 +400,13 @@ Ensures the next section starts at an n-byte boundary (ARM requires 4-byte align
 Defines a symbol only if not already defined (useful for heap/stack).
 
 ```
-PROVIDE(end = .);  /* Used by `_sbrk()` (in syscalls.c) to manage malloc()/free() */
+PROVIDE(end = .);  /* Used by `_sbrk()` (in syscalls.c) to manage `malloc()/free()` */
 PROVIDE(_end = .); 
 ```
 
 ##### (4.4) KEEP() - Prevent Discarding
-Keeps a section even if unused (critical for vector tables):
+Keeps a section even if unused (critical for vector tables).  
+`KEEP` makes sure that section is not removed during optimization.
 
 ```
 KEEP(*(.isr_vector))
